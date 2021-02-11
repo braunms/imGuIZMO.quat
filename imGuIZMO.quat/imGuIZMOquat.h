@@ -194,15 +194,32 @@ struct imguiGizmo
     // vec3 -> quat -> trackbalTransforms -> quat -> vec3
     ////////////////////////////////////////////////////////////////////////////
     bool getTransforms(quat& q, const char* label, vec3& dir, float size) {
+
         float len = length(dir);
+        //if ((len < 1.0f) && (len >= FLT_EPSILON)) {
+        //    normalize(dir); 
+        //    len = 1.0f;
+        //}
+        //else 
+        if (len < FLT_EPSILON) {
+            dir = vec3(1.0f, 0.0f, 0.0f);
+            len = 1.0f;
+        }
 
-        if(len<1.0 && len>= FLT_EPSILON) { normalize(dir); len = 1.0; }
-        else if(len< FLT_EPSILON) { dir = vec3(1.f, 0.f, 0.f); len = 1.0; }
-
-        q = angleAxis(acosf(dir.x/len), normalize(vec3(FLT_EPSILON, -dir.z, dir.y)));
+        float d = 0.0f;
+        if ((dir.x < 0.0f) && (dir.y == 0.0f) && (dir.z == 0.0f)) {
+            q = quat(-FLT_EPSILON, 0.0f, 0.0f, -1.0f);
+        }
+        else {
+            q = angleAxis(acosf(dir.x / len), normalize(vec3(FLT_EPSILON, -dir.z, dir.y)));
+        }
 
         bool ret = drawFunc(label, size);
-        if (ret) dir = (q * vec3(1.0f, 0.0f, 0.0f)) * len ; //return vector with original lenght
+
+        auto axis = vec3(1.0f, 0.0f, 0.0f);
+        if (ret) {
+            dir = (q * axis) * len; // return vector with original length
+        }
 
         return ret;
     }
